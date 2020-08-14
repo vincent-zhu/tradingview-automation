@@ -7,13 +7,16 @@ const puppeteer = require('puppeteer');
         const [page] = await browser.pages();
 
         await page.setBypassCSP(true);
+        const cookiesString = await fs.readFile('./cookies.json');
+        const cookies = JSON.parse(cookiesString);
+        await page.setCookie(...cookies);
         page.on('console', msg => console.log(msg.text()));
 
         await page.goto('https://www.tradingview.com#signin');
         console.log('await start');
         await page.waitFor(120 * 1000);
         console.log('await end');
-        const cookies = await page.cookies();
+        cookies = await page.cookies();
         await fs.writeFile('./cookies.json', JSON.stringify(cookies, null, 2));
         console.log('cookie wrote!')
         return 0;

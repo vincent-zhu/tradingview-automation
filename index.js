@@ -2,7 +2,8 @@ const fs = require('fs').promises;
 const puppeteer = require('puppeteer');
 
 const urlDict = {
-    btcusd: 'https://www.tradingview.com/chart/?symbol=BITMEX%3AXBTUSD'
+    btcusd: 'https://www.tradingview.com/chart/siPoFOHy/',
+    ethusd: 'https://www.tradingview.com/chart/dpoccn6q/'
 };
 
 const intervalDivDict = {
@@ -47,7 +48,10 @@ const getIntervalDiv  = function(name) {
         //     headless: false,
         //     executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' 
         // });
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({ 
+            headless: false, 
+            defaultViewport: false
+        });
         const [page] = await browser.pages();
 
         // 不打开浏览器
@@ -58,13 +62,13 @@ const getIntervalDiv  = function(name) {
         const cookiesString = await fs.readFile('./cookies.json');
         const cookies = JSON.parse(cookiesString);
         await page.setCookie(...cookies);
+        await page.setUserAgent('Mozilla / 5.0(Macintosh; Intel Mac OS X 10_15_5) AppleWebKit / 537.36(KHTML, like Gecko) Chrome / 84.0.4147.89 Safari / 537.36');
         page.on('console', msg => console.log(msg.text()));
 
         await page.goto(url);
 
         // 等待头部导航加载
-        let top = await page.waitFor('#header-toolbar-intervals');
-        await top;
+        await page.waitFor('#header-toolbar-intervals');
         // 选择种类  menu-1fA401bY button-13wlLwhJ apply-common-tooltip
         await page.click('#header-toolbar-intervals');
         // item-2xPVYue0 data-value 1 切换为1分钟
@@ -81,10 +85,12 @@ const getIntervalDiv  = function(name) {
                     function RGBToHex(rgb) {
                         var regexp = /[0-9]{0,3}/g;
                         var re = rgb.match(regexp);
-                        var hexColor = "#";
+                        var hexColor = '#';
                         var hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
                         for (var i = 0; i < re.length; i++) {
-                            var r = null, c = re[i], l = c;
+                            var r = null,
+                                c = re[i],
+                                l = c;
                             var hexAr = [];
                             while (c > 16) {
                                 r = c % 16;
@@ -92,24 +98,19 @@ const getIntervalDiv  = function(name) {
                                 hexAr.push(hex[r]);
                             }
                             hexAr.push(hex[c]);
-                            if (l < 16 && l != "") {
-                                hexAr.push(0)
+                            if (l < 16 && l != '') {
+                                hexAr.push(0);
                             }
                             hexColor += hexAr.reverse().join('');
                         }
 
                         return hexColor;
-                    };
+                    }
 
                     var ws;
-                    var prevInterval = -1;
-                    var prevTimeInfo = null;
-                    var firstSend = false;
-                    var startTime = new Date().getTime();
-                    var lastUploadTime = new Date().getTime();
 
                     function connectServer() {
-                        ws = new WebSocket('ws://127.0.0.1:18888/upload');
+                        ws = new WebSocket('ws://127.0.0.1:18888/signal/upload');
                         ws.onopen = function (event) {
                             console.log('Server connected!');
                         };
@@ -130,40 +131,34 @@ const getIntervalDiv  = function(name) {
                         };
                     }
 
-                    const uploadData = function (data, currInterval, currTimeInfo) {
-                        if (ws) {
+                    const uploadData = function (data) {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
                             try {
                                 console.log('send');
                                 ws.send(JSON.stringify(data));
-                                lastUploadTime = new Date().getTime();
-                                prevInterval = currInterval;
-                                prevTimeInfo = currTimeInfo;
                             } catch (error) {
                                 console.log(error);
                             }
                         }
                     };
 
-                    const uploadIndicators = function (baseInfo, timeInfo, timeout) {
-                        console.log('indicator start');
-                        console.log(timeout);
-                        setTimeout(function () {
-                            console.log('upload indicators');
-                            const indicators = parseIndicators();
-                            const data = {
-                                version: 1,
-                                msgId: '',
-                                msgType: 'indicator',
-                                msgSource: 'tv',
-                                data: {
-                                    code: 0,
-                                    messsage: '',
-                                    tradeInfo: baseInfo,
-                                    indicators: indicators
-                                }
-                            };
-                            uploadData(data, baseInfo.interval, timeInfo);
-                        }, timeout);
+                    const uploadBarCloseIndicators = function (barTime, baseInfo, indicators) {
+                        const now = new Date().getTime();
+                        const start = calcStartTime(barTime, baseInfo.interval);
+                        const end = calcEndTime(barTime, baseInfo.interval);
+                        const data = {
+                            version: 1,
+                            msgId: '',
+                            msgType: 'indicator',
+                            msgSource: 'tv',
+                            occurTime: now,
+                            data: {
+                                tradeInfo: baseInfo,
+                                timePeriod: { start: start, end: end },
+                                indicators: indicators,
+                            },
+                        };
+                        uploadData(data);
                     };
 
                     const parseIndicators = function () {
@@ -177,9 +172,9 @@ const getIntervalDiv  = function(name) {
 
                             const bodyCount = document.querySelectorAll('div.chart-data-window-body')[i].children.length;
                             for (var j = 0; j < bodyCount; j++) {
-                                var paramName = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title')[index].innerText;//指标的参数名
-                                var paramValue = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].innerText;//指标的参数值
-                                var paramColor = RGBToHex(document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].children[0].style.color)
+                                var paramName = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title')[index].innerText; //指标的参数名
+                                var paramValue = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].innerText; //指标的参数值
+                                var paramColor = RGBToHex(document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].children[0].style.color);
 
                                 params.push({ name: paramName, value: paramValue, color: paramColor });
 
@@ -195,7 +190,7 @@ const getIntervalDiv  = function(name) {
                         const titleList = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title');
                         const itemList = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value');
                         var dateText = null;
-                        var timeText = '';
+                        var timeText = null;
                         if (titleList.length > 0 && itemList.length > 0) {
                             if (titleList.item(0).innerText.toLowerCase() === 'date') {
                                 dateText = itemList.item(0).innerText;
@@ -209,10 +204,14 @@ const getIntervalDiv  = function(name) {
                         }
 
                         if (dateText) {
-                            return { date: dateText, time: timeText };
+                            if (timeText) {
+                                return Date.parse(dateText + ' ' + timeText + ':00 GMT');
+                            } else {
+                                return Date.parse(dateText + ' 00:00:00 GMT');
+                            }
                         }
 
-                        return null;
+                        return 0;
                     };
 
                     const parseInterval = function (intervalStr) {
@@ -253,93 +252,89 @@ const getIntervalDiv  = function(name) {
                         }
 
                         return null;
-                    }
+                    };
 
                     const calcStartTime = function (now, interval) {
-                        return calcIntervalTimestamp(now, interval, 0);
-                    }
+                        return calcIntervalTimestamp(now, interval, -1);
+                    };
 
                     const calcEndTime = function (now, interval) {
+                        return calcIntervalTimestamp(now, interval, 0);
+                    };
+
+                    const calcNowEndTime = function (now, interval) {
                         return calcIntervalTimestamp(now, interval, 1);
-                    }
+                    };
 
                     const calcIntervalTimestamp = function (now, interval, step) {
                         const times = Math.floor(now / interval);
-                        return interval * (times + step)
-                    }
-
-                    const checkDataThenUpload = function (lastInterval) {
-                        var interval = 1000;
-                        const now = new Date().getTime();
-                        var sendFlag = false;
-
-                        var dataWindowList = document.querySelectorAll('div.active > div.widgetbar-widget-datawindow div.chart-data-window>div');
-                        if (dataWindowList.length > 0) {
-                            try {
-                                const baseInfo = parseBaseInfo();
-                                const timeInfo = parseDateTime();
-
-                                if (baseInfo == null || timeInfo == null) {
-                                    // TODO
-                                } else {
-                                    const currInterval = baseInfo.interval;
-                                    console.log(prevInterval);
-                                    console.log(currInterval);
-                                    console.log(prevTimeInfo);
-                                    console.log(timeInfo);
-                                    if (prevInterval != currInterval) {
-                                        sendFlag = true;
-                                    } else {
-                                        if ('time' in prevTimeInfo && 'time' in timeInfo) {
-                                            if (prevTimeInfo['time'] != timeInfo['time']) {
-                                                sendFlag = true;
-                                            }
-                                        } else if ('date' in prevTimeInfo && 'date' in timeInfo) {
-                                            if (prevTimeInfo['date'] != timeInfo['date']) {
-                                                sendFlag = true;
-                                            }
-                                        }
-                                    }
-
-                                    if (sendFlag) {
-                                        console.log('upload');
-                                        interval = 2000;
-                                        uploadIndicators(baseInfo, timeInfo, 33);
-                                        console.log('upload end');
-                                    } else {
-                                        const endTime = calcEndTime(now, baseInfo.interval);
-                                        console.log(endTime);
-                                        const diff = endTime - now;
-                                        interval = diff * 0.618;
-                                        console.log(interval);
-                                        if (interval > lastInterval) {
-                                            interval = lastInterval;
-                                        }
-                                        if (interval < 33) {
-                                            interval = 33;
-                                        }
-                                    }
-                                }
-                            } catch (error) {
-                                // TODO
-                            }
-
-                        }
-
-                        setTimeout(function () {
-                            checkDataThenUpload(interval);
-                        }, interval);
-                    }
-
-                    const startCheck = function () {
-                        connectServer();
-                        setTimeout(function () {
-                            startTime = new Date().getTime();
-                            checkDataThenUpload(10 * 1000);
-                        }, 1000 * 10)
+                        return interval * (times + step);
                     };
 
-                    startCheck();
+                    var cachedIndicators = null;
+                    var prevBarTime = 0;
+
+                    const observeVolume = function () {
+                        const target = document.querySelector('.sourcesWrapper-2JcXD9TK .valueValue-3kA0oJs5');
+                        if (target) {
+                            console.log('find target');
+                            const observer = new MutationObserver(mutationsList => {
+                                console.log('Mutation detected!');
+                                var dataWindowList = document.querySelectorAll('div.active > div.widgetbar-widget-datawindow div.chart-data-window>div');
+                                if (dataWindowList.length > 0) {
+                                    try {
+                                        const baseInfo = parseBaseInfo();
+                                        const currBarTime = parseDateTime();
+
+                                        if (baseInfo == null || currBarTime == 0) {
+                                            return;
+                                        }
+
+                                        const indicators = parseIndicators();
+                                        const now = new Date().getTime();
+                                        const timeDiff = now - currBarTime;
+                                        const barTimeDiff = currBarTime - prevBarTime;
+                                        console.log(timeDiff);
+                                        console.log(barTimeDiff);
+                                        console.log(baseInfo.interval);
+                                        if (timeDiff > baseInfo.interval + 10 * 1000) {
+                                            uploadBarCloseIndicators(currBarTime, baseInfo, indicators);
+                                        } else {
+                                            if (barTimeDiff == baseInfo.interval) {
+                                                uploadBarCloseIndicators(currBarTime, baseInfo, cachedIndicators);
+                                            } else {
+                                                cachedIndicators = indicators;
+                                            }
+                                            prevBarTime = currBarTime;
+                                        }
+                                    } catch (error) {
+                                        console.log(error);
+                                    }
+                                }
+                            });
+
+                            observer.observe(target, {
+                                characterData: true,
+                                attributes: false,
+                                childList: false,
+                                subtree: true,
+                            });
+                        } else {
+                            setTimeout(function () {
+                                observeVolume();
+                            }, 1000 * 10);
+                        }
+                    };
+
+                    const startObserve = function () {
+                        connectServer();
+                        setTimeout(function () {
+                            observeVolume();
+                        }, 1000 * 10);
+                    };
+
+                    startObserve();
+
                 })
             });
 
