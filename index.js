@@ -2,12 +2,17 @@ const fs = require('fs').promises;
 const puppeteer = require('puppeteer');
 
 const urlDict = {
-    btcusd: 'https://www.tradingview.com/chart/siPoFOHy/',
-    ethusd: 'https://www.tradingview.com/chart/dpoccn6q/'
+    btcusd: 'https://www.tradingview.com/chart/PH9B08sU/',
+    ethusd: 'https://www.tradingview.com/chart/OqGkaoaR/',
+    mftusdt: 'https://www.tradingview.com/chart/ufOPTWkQ/'
 };
 
 const intervalDivDict = {
-    m1: '#overlap-manager-root .item-2xPVYue0[data-value="1"]'
+    m1: '#overlap-manager-root .item-2xPVYue0[data-value="1"]',
+    m3: '#overlap-manager-root .item-2xPVYue0[data-value="3"]',
+    m5: '#overlap-manager-root .item-2xPVYue0[data-value="5"]',
+    m10: '#overlap-manager-root .item-2xPVYue0[data-value="10"]',
+    m15: '#overlap-manager-root .item-2xPVYue0[data-value="15"]'
 };
 
 const getTargetUrl = function(name) {
@@ -110,7 +115,7 @@ const getIntervalDiv  = function(name) {
                     var ws;
 
                     function connectServer() {
-                        ws = new WebSocket('ws://127.0.0.1:18888/signal/upload');
+                        ws = new WebSocket('ws://127.0.0.1:18888/message/upload');
                         ws.onopen = function (event) {
                             console.log('Server connected!');
                         };
