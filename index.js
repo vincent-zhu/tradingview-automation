@@ -49,19 +49,21 @@ const getIntervalDiv  = function(name) {
         }
 
         // 打开浏览器
-        // const browser = await puppeteer.launch({ 
-        //     headless: false,
-        //     executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' 
-        // });
-        const browser = await puppeteer.launch({ 
-            headless: false, 
-            defaultViewport: false
+        const browser = await puppeteer.launch({
+            headless: true, //不显示UI
+            devtools: false,
+            defaultViewport: false,
+            args: [
+                '--ignore-certificate-errors',
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu'
+            ]
         });
-        const [page] = await browser.pages();
-
-        // 不打开浏览器
-        // const browser = await puppeteer.launch();
-        // const page = await browser.newPage();
+        
+        const context = await browser.createIncognitoBrowserContext();
+        const page = await context.newPage();
 
         await page.setBypassCSP(true);
         const cookiesString = await fs.readFile('./cookies.json');
@@ -154,7 +156,7 @@ const getIntervalDiv  = function(name) {
                         const data = {
                             version: 1,
                             msgId: '',
-                            msgType: 'indicator',
+                            msgType: 'tvIndicator',
                             msgSource: 'tv',
                             occurTime: now,
                             data: {
