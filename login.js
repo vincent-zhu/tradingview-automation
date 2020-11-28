@@ -8,7 +8,7 @@ const puppeteer = require('puppeteer');
 
         await page.setBypassCSP(true);
         const cookiesString = await fs.readFile('./cookies.json');
-        const cookies = JSON.parse(cookiesString);
+        cookies = JSON.parse(cookiesString);
         await page.setCookie(...cookies);
         page.on('console', msg => console.log(msg.text()));
 

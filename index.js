@@ -8,6 +8,8 @@ const urlDict = {
 };
 
 const intervalDivDict = {
+    s5: '#overlap-manager-root .item-2xPVYue0[data-value="5S"]',
+    s15: '#overlap-manager-root .item-2xPVYue0[data-value="15S"]',
     m1: '#overlap-manager-root .item-2xPVYue0[data-value="1"]',
     m3: '#overlap-manager-root .item-2xPVYue0[data-value="3"]',
     m5: '#overlap-manager-root .item-2xPVYue0[data-value="5"]',
@@ -50,7 +52,7 @@ const getIntervalDiv  = function(name) {
 
         // 打开浏览器
         const browser = await puppeteer.launch({
-            headless: true, //不显示UI
+            headless: false, //不显示UI
             devtools: false,
             defaultViewport: false,
             args: [
@@ -212,9 +214,12 @@ const getIntervalDiv  = function(name) {
 
                         if (dateText) {
                             if (timeText) {
-                                return Date.parse(dateText + ' ' + timeText + ':00 GMT');
-                            } else {
-                                return Date.parse(dateText + ' 00:00:00 GMT');
+                                const timeLen = timeText.split(':').length;
+                                if (timeLen == 2) {
+                                    return Date.parse(dateText + ' ' + timeText + ':00 GMT');
+                                } else if (timeLen == 3) {
+                                    return Date.parse(dateText + ' ' + timeText + ' GMT');
+                                }
                             }
                         }
 
@@ -238,6 +243,9 @@ const getIntervalDiv  = function(name) {
                         } else if (intervalStr.lastIndexOf('m') != -1) {
                             endPos = intervalStr.lastIndexOf('m');
                             times = 1000 * 60 * 60 * 24 * 7 * 30;
+                        } else if (intervalStr.lastIndexOf('s') != -1) {
+                            endPos = intervalStr.lastIndexOf('s');
+                            times = 1000;
                         }
 
                         numStr = intervalStr.substring(0, endPos);
