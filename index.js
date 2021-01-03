@@ -2,9 +2,11 @@ const fs = require('fs').promises;
 const puppeteer = require('puppeteer');
 
 const urlDict = {
-    btcusd: 'https://www.tradingview.com/chart/PH9B08sU/',
-    ethusd: 'https://www.tradingview.com/chart/OqGkaoaR/',
-    mftusdt: 'https://www.tradingview.com/chart/ufOPTWkQ/'
+    btcusdt: 'https://www.tradingview.com/chart/ufOPTWkQ/',
+    ethusdt: 'https://www.tradingview.com/chart/8tG86THh/',
+    ltcusdt: 'https://www.tradingview.com/chart/j5L9DGxr/',
+    btcusd:  'https://www.tradingview.com/chart/yIpMOu6N/',
+    ethusd:  'https://www.tradingview.com/chart/eFsbKVZD/'
 };
 
 const intervalDivDict = {
@@ -52,7 +54,7 @@ const getIntervalDiv  = function(name) {
 
         // 打开浏览器
         const browser = await puppeteer.launch({
-            headless: false, //不显示UI
+            headless: true, //不显示UI
             devtools: false,
             defaultViewport: false,
             args: [
@@ -60,7 +62,7 @@ const getIntervalDiv  = function(name) {
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
+                '--disable-gpu's
             ]
         });
         

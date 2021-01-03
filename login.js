@@ -7,9 +7,14 @@ const puppeteer = require('puppeteer');
         const [page] = await browser.pages();
 
         await page.setBypassCSP(true);
-        const cookiesString = await fs.readFile('./cookies.json');
-        cookies = JSON.parse(cookiesString);
-        await page.setCookie(...cookies);
+        try {
+            const cookiesString = await fs.readFile('./cookies.json');
+            cookies = JSON.parse(cookiesString);
+            await page.setCookie(...cookies);
+        } catch (error) {
+            
+        }
+        
         page.on('console', msg => console.log(msg.text()));
 
         await page.goto('https://www.tradingview.com#signin');
