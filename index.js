@@ -314,7 +314,7 @@ const getIntervalDiv  = function(name) {
                                         console.log(timeDiff);
                                         console.log(barTimeDiff);
                                         console.log(baseInfo.interval);
-                                        if (timeDiff > baseInfo.interval + 10 * 1000) {
+                                        if (timeDiff > baseInfo.interval + 3 * 1000) {
                                             uploadBarCloseIndicators(currBarTime, baseInfo, indicators);
                                         } else {
                                             if (barTimeDiff == baseInfo.interval) {
