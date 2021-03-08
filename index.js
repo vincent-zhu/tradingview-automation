@@ -38,7 +38,7 @@ const getIntervalDiv  = function(name) {
 (async function main() {
     try {
         const args = process.argv;
-        if (args.length != 4) {
+        if (args.length !== 4) {
             console.error('Illegal argument');
             return -1;
         }
@@ -85,6 +85,11 @@ const getIntervalDiv  = function(name) {
         // item-2xPVYue0 data-value 1 切换为1分钟
         await page.click(internalDiv);
 
+        const selector = await page.$('.sourcesWrapper-2JcXD9TK .valueValue-3kA0oJs5');
+        await selector.hover();
+        // await selector.click();
+        console.log('hover target');
+
         // 挂载方法到window对象
         // page.exposeFunction('getValue', getValue);
 
@@ -94,22 +99,22 @@ const getIntervalDiv  = function(name) {
             .then(() => {
                 page.evaluate(() => {
                     function RGBToHex(rgb) {
-                        var regexp = /[0-9]{0,3}/g;
-                        var re = rgb.match(regexp);
-                        var hexColor = '#';
-                        var hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
-                        for (var i = 0; i < re.length; i++) {
-                            var r = null,
+                        let regexp = /[0-9]{0,3}/g;
+                        let re = rgb.match(regexp);
+                        let hexColor = '#';
+                        let hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+                        for (let i = 0; i < re.length; i++) {
+                            let r = null,
                                 c = re[i],
                                 l = c;
-                            var hexAr = [];
+                            let hexAr = [];
                             while (c > 16) {
                                 r = c % 16;
                                 c = (c / 16) >> 0;
                                 hexAr.push(hex[r]);
                             }
                             hexAr.push(hex[c]);
-                            if (l < 16 && l != '') {
+                            if (l < 16 && l !== '') {
                                 hexAr.push(0);
                             }
                             hexColor += hexAr.reverse().join('');
@@ -118,7 +123,7 @@ const getIntervalDiv  = function(name) {
                         return hexColor;
                     }
 
-                    var ws;
+                    let ws;
 
                     function connectServer() {
                         ws = new WebSocket('ws://127.0.0.1:18888/message/upload');
@@ -176,16 +181,16 @@ const getIntervalDiv  = function(name) {
                         const indicatorsCount = document.querySelectorAll(' div.chart-data-window > div').length;
                         const indicatorData = [];
 
-                        var index = 2;
-                        for (var i = 1; i < indicatorsCount; i++) {
+                        let index = 2;
+                        for (let i = 1; i < indicatorsCount; i++) {
                             const title = document.querySelectorAll('div.chart-data-window-header')[i].children[0].title;
                             const params = [];
 
                             const bodyCount = document.querySelectorAll('div.chart-data-window-body')[i].children.length;
-                            for (var j = 0; j < bodyCount; j++) {
-                                var paramName = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title')[index].innerText; //指标的参数名
-                                var paramValue = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].innerText; //指标的参数值
-                                var paramColor = RGBToHex(document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].children[0].style.color);
+                            for (let j = 0; j < bodyCount; j++) {
+                                let paramName = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title')[index].innerText; //指标的参数名
+                                let paramValue = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].innerText; //指标的参数值
+                                let paramColor = RGBToHex(document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value')[index].children[0].style.color);
 
                                 params.push({ name: paramName, value: paramValue, color: paramColor });
 
@@ -200,8 +205,8 @@ const getIntervalDiv  = function(name) {
                     const parseDateTime = function () {
                         const titleList = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-title');
                         const itemList = document.querySelectorAll('div.chart-data-window-body>div>div.chart-data-window-item-value');
-                        var dateText = null;
-                        var timeText = null;
+                        let dateText = null;
+                        let timeText = null;
                         if (titleList.length > 0 && itemList.length > 0) {
                             if (titleList.item(0).innerText.toLowerCase() === 'date') {
                                 dateText = itemList.item(0).innerText;
@@ -217,9 +222,9 @@ const getIntervalDiv  = function(name) {
                         if (dateText) {
                             if (timeText) {
                                 const timeLen = timeText.split(':').length;
-                                if (timeLen == 2) {
+                                if (timeLen === 2) {
                                     return Date.parse(dateText + ' ' + timeText + ':00 GMT');
-                                } else if (timeLen == 3) {
+                                } else if (timeLen === 3) {
                                     return Date.parse(dateText + ' ' + timeText + ' GMT');
                                 }
                             }
@@ -229,23 +234,23 @@ const getIntervalDiv  = function(name) {
                     };
 
                     const parseInterval = function (intervalStr) {
-                        var times = 1000 * 60;
+                        let times = 1000 * 60;
                         intervalStr = intervalStr.toLowerCase();
-                        var numStr = intervalStr;
-                        var endPos = intervalStr.length;
-                        if (intervalStr.lastIndexOf('h') != -1) {
+                        let numStr = intervalStr;
+                        let endPos = intervalStr.length;
+                        if (intervalStr.lastIndexOf('h') !== -1) {
                             endPos = intervalStr.lastIndexOf('h');
                             times = 1000 * 60 * 60;
-                        } else if (intervalStr.lastIndexOf('d') != -1) {
+                        } else if (intervalStr.lastIndexOf('d') !== -1) {
                             endPos = intervalStr.lastIndexOf('d');
                             times = 1000 * 60 * 60 * 24;
-                        } else if (intervalStr.lastIndexOf('w') != -1) {
+                        } else if (intervalStr.lastIndexOf('w') !== -1) {
                             endPos = intervalStr.lastIndexOf('w');
                             times = 1000 * 60 * 60 * 24 * 7;
-                        } else if (intervalStr.lastIndexOf('m') != -1) {
+                        } else if (intervalStr.lastIndexOf('m') !== -1) {
                             endPos = intervalStr.lastIndexOf('m');
                             times = 1000 * 60 * 60 * 24 * 7 * 30;
-                        } else if (intervalStr.lastIndexOf('s') != -1) {
+                        } else if (intervalStr.lastIndexOf('s') !== -1) {
                             endPos = intervalStr.lastIndexOf('s');
                             times = 1000;
                         }
@@ -288,22 +293,23 @@ const getIntervalDiv  = function(name) {
                         return interval * (times + step);
                     };
 
-                    var cachedIndicators = null;
-                    var prevBarTime = 0;
+                    let cachedIndicators = null;
+                    let prevBarTime = 0;
 
                     const observeVolume = function () {
                         const target = document.querySelector('.sourcesWrapper-2JcXD9TK .valueValue-3kA0oJs5');
                         if (target) {
                             console.log('find target');
+
                             const observer = new MutationObserver(mutationsList => {
                                 console.log('Mutation detected!');
-                                var dataWindowList = document.querySelectorAll('div.active > div.widgetbar-widget-datawindow div.chart-data-window>div');
+                                let dataWindowList = document.querySelectorAll('div.active > div.widgetbar-widget-datawindow div.chart-data-window>div');
                                 if (dataWindowList.length > 0) {
                                     try {
                                         const baseInfo = parseBaseInfo();
                                         const currBarTime = parseDateTime();
 
-                                        if (baseInfo == null || currBarTime == 0) {
+                                        if (baseInfo === null || currBarTime === 0) {
                                             return;
                                         }
 
@@ -314,10 +320,13 @@ const getIntervalDiv  = function(name) {
                                         console.log(timeDiff);
                                         console.log(barTimeDiff);
                                         console.log(baseInfo.interval);
+                                        if (timeDiff > baseInfo.interval * 5) {
+                                            return;
+                                        }
                                         if (timeDiff > baseInfo.interval + 3 * 1000) {
                                             uploadBarCloseIndicators(currBarTime, baseInfo, indicators);
                                         } else {
-                                            if (barTimeDiff == baseInfo.interval) {
+                                            if (barTimeDiff === baseInfo.interval) {
                                                 uploadBarCloseIndicators(currBarTime, baseInfo, cachedIndicators);
                                             } else {
                                                 cachedIndicators = indicators;
