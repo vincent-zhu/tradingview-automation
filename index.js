@@ -2,11 +2,11 @@ const fs = require('fs').promises;
 const puppeteer = require('puppeteer');
 
 const urlDict = {
-    btcusdt: 'https://www.tradingview.com/chart/ufOPTWkQ/',
-    ethusdt: 'https://www.tradingview.com/chart/8tG86THh/',
-    ltcusdt: 'https://www.tradingview.com/chart/j5L9DGxr/',
-    btcusd:  'https://www.tradingview.com/chart/yIpMOu6N/',
-    ethusd:  'https://www.tradingview.com/chart/eFsbKVZD/'
+    btcusdt: 'https://www.tradingview.com/chart/xxxxxx/',
+    ethusdt: 'https://www.tradingview.com/chart/xxxxxx/',
+    ltcusdt: 'https://www.tradingview.com/chart/xxxxxx/',
+    btcusd:  'https://www.tradingview.com/chart/xxxxxx/',
+    ethusd:  'https://www.tradingview.com/chart/xxxxxx/'
 };
 
 const intervalDivDict = {
